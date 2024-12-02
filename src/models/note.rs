@@ -40,12 +40,12 @@ impl Note {
 pub struct NewNote<'a> {
     pub title: &'a str,
     pub content: &'a str,
-    pub tags: &'a str,
+    pub tags: Vec<&'a str>,
     pub encrypted: bool,
 }
 
 impl<'a> NewNote<'a> {
-    pub fn new(title: &'a str, content: &'a str, tags: &'a str, encrypted: bool) -> Self {
+    pub fn new(title: &'a str, content: &'a str, tags: Vec<&'a str>, encrypted: bool) -> Self {
         Self {
             title,
             content,

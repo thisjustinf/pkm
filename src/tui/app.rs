@@ -1,3 +1,5 @@
+use diesel::deserialize::Result;
+
 use crate::models::note::Note;
 
 pub struct TuiApp {
@@ -14,6 +16,8 @@ impl TuiApp {
             input_mode,
         }
     }
+
+    pub fn add_note(title: &str, content: &str, tags: Vec<&str>, encrypted: bool) -> Result<Note> {}
 }
 
 pub enum InputMode {
