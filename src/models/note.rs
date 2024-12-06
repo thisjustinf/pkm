@@ -1,3 +1,5 @@
+use std::io::Write;
+
 use crate::database::schema::notes;
 use diesel::{
     deserialize::{self, FromSql, FromSqlRow},
@@ -44,7 +46,7 @@ impl Note {
 }
 
 #[derive(Insertable)]
-#[table_name = "notes"]
+#[diesel(table_name = notes)]
 pub struct NewNote<'a> {
     pub title: &'a str,
     pub content: &'a str,
@@ -65,11 +67,11 @@ impl<'a> NewNote<'a> {
 
 // Diesel-compatible custom type for tags
 #[derive(Serialize, Deserialize, Debug, FromSqlRow, AsExpression)]
-#[sql_type = "diesel::sql_types::Text"]
+#[diesel(sql_type = diesel::sql_types::Text)]
 pub struct JsonTags(pub Vec<String>);
 
 impl ToSql<diesel::sql_types::Text, Sqlite> for JsonTags {
-    fn to_sql<W: Writer>(&self, out: &mut Output<W, Sqlite>) -> serialize::Result {
+    fn to_sql<W: Write>(&self, out: &mut Output<W, Sqlite>) -> serialize::Result {
         let json =
             serde_json::to_string(&self.0).map_err(|_| serialize::Error::SerializationError)?;
         out.write_all(json.as_bytes())?;
@@ -79,7 +81,7 @@ impl ToSql<diesel::sql_types::Text, Sqlite> for JsonTags {
 
 impl FromSql<diesel::sql_types::Text, Sqlite> for JsonTags {
     fn from_sql(bytes: SqliteValue<'_, '_, '_>) -> deserialize::Result<Self> {
-        let bytes = bytes.ok_or_else(|| deserialize::Error::UnexpectedNull)?;
+        let bytes: &[u8] = bytes.ok_or_else(|| deserialize::Error::UnexpectedNull)?;
         let tags: Vec<String> =
             serde_json::from_slice(bytes).map_err(|_| deserialize::Error::DeserializationError)?;
         Ok(JsonTags(tags))
