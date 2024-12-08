@@ -1,10 +1,9 @@
-use std::io::Write;
-
 use crate::database::schema::notes;
 use diesel::{
     deserialize::{self, FromSql, FromSqlRow},
     expression::AsExpression,
     serialize::{self, IsNull, Output, ToSql},
+    sql_types::{self, Text},
     sqlite::{Sqlite, SqliteValue},
     Insertable, Queryable,
 };
@@ -17,7 +16,7 @@ pub struct Note {
     pub id: i32,
     pub title: String,
     pub content: String,
-    pub tags: Vec<String>, // JSON encoded string
+    pub tags: JsonTags, // JSON encoded string
     pub created_at: String,
     pub updated_at: Option<String>,
     pub encrypted: bool,
@@ -28,7 +27,7 @@ impl Note {
         id: i32,
         title: String,
         content: String,
-        tags: Vec<String>,
+        tags: JsonTags,
         created_at: String,
         updated_at: Option<String>,
         encrypted: bool,
@@ -67,23 +66,21 @@ impl<'a> NewNote<'a> {
 
 // Diesel-compatible custom type for tags
 #[derive(Serialize, Deserialize, Debug, FromSqlRow, AsExpression)]
-#[diesel(sql_type = diesel::sql_types::Text)]
+#[diesel(sql_type = sql_types::Text)]
 pub struct JsonTags(pub Vec<String>);
 
 impl ToSql<diesel::sql_types::Text, Sqlite> for JsonTags {
-    fn to_sql<W: Write>(&self, out: &mut Output<W, Sqlite>) -> serialize::Result {
-        let json =
-            serde_json::to_string(&self.0).map_err(|_| serialize::Error::SerializationError)?;
-        out.write_all(json.as_bytes())?;
+    fn to_sql<'b>(&'b self, out: &mut Output<'b, '_, Sqlite>) -> serialize::Result {
+        let json: String = serde_json::to_string(&self.0)?;
+        out.set_value(json);
         Ok(IsNull::No)
     }
 }
 
-impl FromSql<diesel::sql_types::Text, Sqlite> for JsonTags {
-    fn from_sql(bytes: SqliteValue<'_, '_, '_>) -> deserialize::Result<Self> {
-        let bytes: &[u8] = bytes.ok_or_else(|| deserialize::Error::UnexpectedNull)?;
-        let tags: Vec<String> =
-            serde_json::from_slice(bytes).map_err(|_| deserialize::Error::DeserializationError)?;
+impl FromSql<sql_types::Text, Sqlite> for JsonTags {
+    fn from_sql(bytes: SqliteValue) -> deserialize::Result<Self> {
+        let sql_str: String = <String as deserialize::FromSql<Text, Sqlite>>::from_sql(bytes)?;
+        let tags: Vec<String> = serde_json::from_str(&sql_str)?;
         Ok(JsonTags(tags))
     }
 }

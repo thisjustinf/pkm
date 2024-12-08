@@ -7,7 +7,7 @@ edition = "2021"
 serde = { version = "1.0.215", features = ["derive"] }
 chrono = "0.4.38"
 crossterm = "0.28.1"
-diesel = { version = "2.2.5", features = [
+diesel = { version = "2.2.6", features = [
     "sqlite",
     "returning_clauses_for_sqlite_3_35",
 ] }
