@@ -1,14 +1,11 @@
 use crate::database::establish_connection;
 use crate::models::note::{NewNote, Note};
 use diesel::sqlite::SqliteConnection;
+use nject::{injectable, provider};
 
-trait NoteRepository {
-    fn fetch_notes(limit: u8, offset: u8) -> Result;
-    fn create_note(note: NewNote);
-    fn delete_note(note_id: i32);
-}
 
-pub struct NoteRepositoryImpl {
+#[injectable]
+pub struct NoteRepository {
     connection: SqliteConnection,
 }
 
@@ -18,4 +15,8 @@ pub fn new() -> Self {
     }
 }
 
-impl NoteRepository for NoteRepositoryImpl {}
+impl Repository<Note, i32> for NoteRepository {
+    fn create_note(note: NewNote) -> Result {
+
+    }
+}

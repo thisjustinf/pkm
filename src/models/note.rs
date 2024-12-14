@@ -69,7 +69,7 @@ impl<'a> NewNote<'a> {
 #[diesel(sql_type = sql_types::Text)]
 pub struct JsonTags(pub Vec<String>);
 
-impl ToSql<diesel::sql_types::Text, Sqlite> for JsonTags {
+impl ToSql<Text, Sqlite> for JsonTags {
     fn to_sql<'b>(&'b self, out: &mut Output<'b, '_, Sqlite>) -> serialize::Result {
         let json: String = serde_json::to_string(&self.0)?;
         out.set_value(json);
@@ -77,7 +77,7 @@ impl ToSql<diesel::sql_types::Text, Sqlite> for JsonTags {
     }
 }
 
-impl FromSql<sql_types::Text, Sqlite> for JsonTags {
+impl FromSql<Text, Sqlite> for JsonTags {
     fn from_sql(bytes: SqliteValue) -> deserialize::Result<Self> {
         let sql_str: String = <String as deserialize::FromSql<Text, Sqlite>>::from_sql(bytes)?;
         let tags: Vec<String> = serde_json::from_str(&sql_str)?;
