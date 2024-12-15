@@ -1,3 +1,3 @@
-pub trait Service{
+pub trait Service<T>{
     
 }

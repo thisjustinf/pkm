@@ -1,5 +1,8 @@
-pub trait NoteService {}
 
-pub struct NoteServiceImpl {}
+use super::Service;
 
-impl NoteService for NoteServiceImpl {}
+pub struct NoteService {
+    repo: NoteRepository
+}
+
+impl Service<Note> for NoteService {}

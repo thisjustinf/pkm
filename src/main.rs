@@ -7,9 +7,7 @@ use ratatui::{backend::CrosstermBackend, Terminal};
 use std::io;
 use tui::{layout::draw_ui, InputMode, TuiApp};
 
-mod database;
-mod models;
-mod tui;
+
 
 fn main() -> Result<(), io::Error> {
     // Initialize terminal
