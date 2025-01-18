@@ -1,39 +1,36 @@
-use diesel::prelude::*;
-use diesel::r2d2::{ConnectionManager, Pool, PooledConnection};
+use diesel::r2d2::{ConnectionManager, Pool, PoolError, PooledConnection};
 use diesel::sqlite::SqliteConnection;
 use dotenvy::dotenv;
-use nject::injectable;
+use nject::{inject, injectable, Provider};
 use std::env;
 
 pub mod schema;
 
-
-    // Provide the Database connection
-    injector.provide::<Database>().with_factory(|_| {
-        let manager: ConnectionManager<SqliteConnection> =
-            ConnectionManager::new("db/pkm.sqlite");
-        let pool: Pool<ConnectionManager<SqliteConnection>> = Pool::builder()
-            .build(manager)
-            .expect("Failed to create database connection pool");
-        Database::new(pool.get().expect("Failed to get DB connection"))
-    });
-
-fn establish_connection() -> SqliteConnection {
-    dotenv().ok();
-    let database_url: String = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-    SqliteConnection::establish(&database_url).expect("Error connecting to database")
-}
-
+pub type DbPool = Pool<ConnectionManager<SqliteConnection>>;
 pub type DbConnection = PooledConnection<ConnectionManager<SqliteConnection>>;
 
 #[injectable]
-#[inject(Pool::builder().build(establish_connection()))]
-pub struct Database {
-    pub connection: DbConnection,
+#[inject(Self::create_pool())]
+pub struct DatabasePool {
+    pub pool: DbPool,
 }
 
-impl Database {
-    pub fn new(connection: DbConnection) -> Self {
-        Self { connection }
+impl DatabasePool {
+    /// Initialize the connection pool
+    fn create_pool(&self) -> Self {
+        dotenv().ok();
+        let database_url: String = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+        let manager: ConnectionManager<SqliteConnection> =
+            ConnectionManager::<SqliteConnection>::new(database_url);
+        let pool: DbPool = Pool::builder()
+            .build(manager)
+            .expect("Failed to create database connection pool");
+
+        Self { pool }
+    }
+
+    /// Get a connection from the pool
+    pub fn get_connection(&self) -> Result<DbConnection, PoolError> {
+        self.pool.get()
     }
 }

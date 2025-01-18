@@ -46,6 +46,7 @@ impl Note {
 
 #[derive(Insertable)]
 #[diesel(table_name = notes)]
+#[diesel(check_for_backend(Sqlite))]
 pub struct NewNote<'a> {
     pub title: &'a str,
     pub content: &'a str,
