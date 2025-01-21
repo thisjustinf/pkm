@@ -2,4 +2,4 @@
 pub mod note;
 
 // Re-export the Note and NewNote structs for easier access
-// pub use note::{NewNote, Note};
+pub use note::{BaseNoteDTO, CreateNoteDTO, Note};

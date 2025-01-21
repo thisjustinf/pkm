@@ -1,3 +1,4 @@
+use diesel::r2d2::PoolError;
 use thiserror::Error;
 pub mod note_repository;
 
@@ -8,13 +9,13 @@ pub enum RepositoryError {
     #[error("Resource not found in the DB")]
     ResourceNotFound,
     #[error("Database Error: {0}")]
-    Database(#[from] diesel::result::Error)
+    DatabaseError(#[from] PoolError),
 }
 
 pub trait Repository<T, U> {
-    fn get_all(&self) -> Result<T, RepositoryError>;
+    fn get_all(&self) -> Result<Vec<T>, RepositoryError>;
     fn get_by_id(&self, id: U) -> Result<T, RepositoryError>;
-    fn create<I>(&self, insertable: &I) -> Result<T, RepositoryError>;
-    fn update(&self, id: U) -> Result<T, RepositoryError>;
-    fn delete(&self, id: U) -> Result<T, RepositoryError>;
+    fn create<V>(&self, insertable: &V) -> Result<T, RepositoryError>;
+    fn update<V>(&self, id: U, dto: &V) -> Result<T, RepositoryError>;
+    fn delete(&self, id: U) -> Result<bool, RepositoryError>;
 }

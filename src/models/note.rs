@@ -5,15 +5,15 @@ use diesel::{
     serialize::{self, IsNull, Output, ToSql},
     sql_types::{self, Text},
     sqlite::{Sqlite, SqliteValue},
-    Insertable, Queryable,
+    Insertable, Queryable, Selectable,
 };
 use serde::{Deserialize, Serialize};
 
-#[derive(Queryable, Serialize, Deserialize, Debug)]
+#[derive(Queryable, Selectable, Serialize, Deserialize, Debug)]
 #[diesel(table_name = notes)]
 #[diesel(check_for_backend(Sqlite))]
 pub struct Note {
-    pub id: i32,
+    pub id: u32,
     pub title: String,
     pub content: String,
     pub tags: JsonTags, // JSON encoded string
@@ -24,7 +24,7 @@ pub struct Note {
 
 impl Note {
     pub fn new(
-        id: i32,
+        id: u32,
         title: String,
         content: String,
         tags: JsonTags,
@@ -47,14 +47,33 @@ impl Note {
 #[derive(Insertable)]
 #[diesel(table_name = notes)]
 #[diesel(check_for_backend(Sqlite))]
-pub struct NewNote<'a> {
+pub struct BaseNoteDTO<'a> {
+    pub title: &'a str,
+    pub content: &'a str,
+    pub tags: &'a str, // JSON encoded string
+}
+
+impl<'a> BaseNoteDTO<'a> {
+    pub fn new(title: &'a str, content: &'a str, tags: &'a str) -> Self {
+        Self {
+            title,
+            content,
+            tags,
+        }
+    }
+}
+
+#[derive(Insertable)]
+#[diesel(table_name = notes)]
+#[diesel(check_for_backend(Sqlite))]
+pub struct CreateNoteDTO<'a> {
     pub title: &'a str,
     pub content: &'a str,
     pub tags: &'a str, // JSON encoded string
     pub encrypted: bool,
 }
 
-impl<'a> NewNote<'a> {
+impl<'a> CreateNoteDTO<'a> {
     pub fn new(title: &'a str, content: &'a str, tags: &'a str, encrypted: bool) -> Self {
         Self {
             title,
