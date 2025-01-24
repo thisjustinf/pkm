@@ -2,12 +2,12 @@
 
 diesel::table! {
     notes (id) {
-        id -> Nullable<Integer>,
+        id -> Integer,
         title -> Text,
         content -> Text,
         tags -> Text,
-        created_at -> Text,
-        updated_at -> Nullable<Text>,
+        created_at -> Timestamp,
+        updated_at -> Timestamp,
         encrypted -> Bool,
     }
 }

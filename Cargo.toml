@@ -5,9 +5,10 @@ edition = "2021"
 
 [dependencies]
 serde = { version = "1.0.215", features = ["derive"] }
-chrono = "0.4.38"
+chrono = { version = "0.4.38", features = ["serde"] }
 crossterm = "0.28.1"
 diesel = { version = "2.2.6", features = [
+    "chrono",
     "r2d2",
     "sqlite",
     "returning_clauses_for_sqlite_3_35",
@@ -16,6 +17,5 @@ diesel_migrations = "2.2.0"
 dotenvy = "0.15.7"
 ratatui = "0.29.0"
 serde_json = "1.0.133"
-nject = "0.4.4"
 thiserror = "2.0.7"
 async-trait = "0.1.83"

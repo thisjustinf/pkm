@@ -5,12 +5,10 @@ use diesel::{
     r2d2::{ConnectionManager, PooledConnection},
     RunQueryDsl, SqliteConnection,
 };
-use nject::{inject, injectable};
 
 use super::{Repository, RepositoryError};
 
-#[injectable]
-#[inject(Self::new(db))]
+#[derive(Debug)]
 pub struct NoteRepository {
     db: DatabasePool,
 }
@@ -21,22 +19,36 @@ impl NoteRepository {
     }
 }
 
-impl Repository<Note, u32> for NoteRepository {
-    fn get_all(&self) -> Result<Vec<Note>, RepositoryError> {
-        todo!()
+impl Default for NoteRepository {
+    fn default() -> Self {
+        let db_pool: DatabasePool = DatabasePool::create_pool();
+        NoteRepository::new(db_pool)
+    }
+}
+
+impl Repository<Note, i32> for NoteRepository {
+    fn get_all(&self, limit: i64) -> Result<Vec<Note>, RepositoryError> {
+        let mut conn: PooledConnection<ConnectionManager<SqliteConnection>> = self
+            .db
+            .get_connection()
+            .map_err(|e| RepositoryError::DatabaseError(e))?;
+        notes
+            .limit(limit)
+            .select(Note::as_select())
+            .load(&mut conn)
+            .map_err(|e| RepositoryError::ResourceNotFound)
     }
 
-    fn get_by_id(&self, note_id: u32) -> Result<Note, RepositoryError> {
+    fn get_by_id(&self, note_id: i32) -> Result<Note, RepositoryError> {
         let conn: PooledConnection<ConnectionManager<SqliteConnection>> = self
             .db
             .get_connection()
             .map_err(|e| RepositoryError::DatabaseError(e))?;
-        let note: Result<Note, RepositoryError> = notes
+        notes
             .find(note_id)
             .select(Note::as_select())
             .first(&mut conn)
-            .map_err(|e| RepositoryError::ResourceNotFound);
-        note
+            .map_err(|e| RepositoryError::ResourceNotFound)
     }
 
     fn create<CreateNoteDTO>(&self, insertable: &CreateNoteDTO) -> Result<Note, RepositoryError> {
@@ -44,44 +56,44 @@ impl Repository<Note, u32> for NoteRepository {
             .db
             .get_connection()
             .map_err(|e| RepositoryError::DatabaseError(e))?;
-        let note: Result<Note, RepositoryError> = diesel::insert_into(notes)
+        diesel::insert_into(notes)
             .values(insertable)
             .returning(Note::as_returning())
             .get_result(&mut conn)
-            .map_err(|e| RepositoryError::DatabaseError(e));
-        note
+            .map_err(|e| RepositoryError::InsertError)
     }
 
     fn update<BaseNoteDTO>(
         &self,
-        note_id: u32,
+        note_id: i32,
         dto: &BaseNoteDTO,
     ) -> Result<Note, RepositoryError> {
         let conn: PooledConnection<ConnectionManager<SqliteConnection>> = self
             .db
             .get_connection()
             .map_err(|e| RepositoryError::DatabaseError(e))?;
-        if let Ok(n) = self.get_by_id(note_id) {
+        if let Ok(_) = self.get_by_id(note_id) {
             let updated_note = diesel::update(notes.find(note_id))
                 .set((
-                    title.eq(*dto.title),
-                    content.eq(*dto.content),
-                    tags.eq(*dto.tags),
+                    title.eq(dto.title),
+                    content.eq(dto.content),
+                    tags.eq(dto.tags),
                 ))
                 .returning(Note::as_returning())
-                .get_result(&mut conn)?;
+                .get_result(&mut conn)
+                .map_err(|e| RepositoryError::DatabaseError(e))?;
             Ok(updated_note)
         } else {
             Err(RepositoryError::ResourceNotFound)
         }
     }
 
-    fn delete(&self, note_id: u32) -> Result<bool, RepositoryError> {
+    fn delete(&self, note_id: i32) -> Result<bool, RepositoryError> {
         let mut conn: PooledConnection<ConnectionManager<SqliteConnection>> = self
             .db
             .get_connection()
             .map_err(|e| RepositoryError::DatabaseError(e))?;
-        if let Ok(n) = self.get_by_id(note_id) {
+        if let Ok(_) = self.get_by_id(note_id) {
             let deletions: usize = diesel::delete(notes.find(note_id)).execute(&mut conn)?;
             Ok(deletions == 1)
         } else {

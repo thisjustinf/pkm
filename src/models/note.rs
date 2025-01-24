@@ -1,4 +1,5 @@
 use crate::database::schema::notes;
+use chrono::NaiveDateTime;
 use diesel::{
     deserialize::{self, FromSql, FromSqlRow},
     expression::AsExpression,
@@ -9,27 +10,27 @@ use diesel::{
 };
 use serde::{Deserialize, Serialize};
 
-#[derive(Queryable, Selectable, Serialize, Deserialize, Debug)]
+#[derive(Queryable, Selectable, Serialize, Deserialize, PartialEq, Debug)]
 #[diesel(table_name = notes)]
 #[diesel(check_for_backend(Sqlite))]
 pub struct Note {
-    pub id: u32,
+    pub id: i32,
     pub title: String,
     pub content: String,
     pub tags: JsonTags, // JSON encoded string
-    pub created_at: String,
-    pub updated_at: Option<String>,
+    pub created_at: NaiveDateTime,
+    pub updated_at: NaiveDateTime,
     pub encrypted: bool,
 }
 
 impl Note {
     pub fn new(
-        id: u32,
+        id: i32,
         title: String,
         content: String,
         tags: JsonTags,
-        created_at: String,
-        updated_at: Option<String>,
+        created_at: NaiveDateTime,
+        updated_at: NaiveDateTime,
         encrypted: bool,
     ) -> Self {
         Self {
@@ -88,6 +89,12 @@ impl<'a> CreateNoteDTO<'a> {
 #[derive(Serialize, Deserialize, Debug, FromSqlRow, AsExpression)]
 #[diesel(sql_type = sql_types::Text)]
 pub struct JsonTags(pub Vec<String>);
+
+impl PartialEq for JsonTags {
+    fn eq(&self, other: &Self) -> bool {
+        self.0 == other.0
+    }
+}
 
 impl ToSql<Text, Sqlite> for JsonTags {
     fn to_sql<'b>(&'b self, out: &mut Output<'b, '_, Sqlite>) -> serialize::Result {
