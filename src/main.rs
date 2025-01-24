@@ -1,5 +1,5 @@
 use crossterm::{
-    event::{self, Event, KeyCode},
+    event::{self, EnableMouseCapture, Event, KeyCode},
     execute,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
@@ -7,20 +7,15 @@ use pkm::tui::{layout::draw_ui, InputMode, TuiApp};
 use ratatui::{backend::CrosstermBackend, Terminal};
 use std::io;
 
-fn main() -> Result<(), io::Error> {
+fn main() -> Result<(), Box<dyn Error>> {
     // Initialize terminal
     enable_raw_mode()?;
-    let mut stdout: io::Stdout = io::stdout();
-    execute!(stdout, EnterAlternateScreen)?;
-    let backend: CrosstermBackend<io::Stdout> = CrosstermBackend::new(stdout);
-    let mut terminal: Terminal<CrosstermBackend<io::Stdout>> = Terminal::new(backend)?;
+    let mut stderr: io::Stderr = io::stderr(); // This is a special case. Normally using stdout is fine
+    execute!(stderr, EnterAlternateScreen, EnableMouseCapture)?;
+    let backend: CrosstermBackend<io::Stderr> = CrosstermBackend::new(stderr);
+    let mut terminal: Terminal<CrosstermBackend<io::Stderr>> = Terminal::new(backend)?;
 
-    let mut app: TuiApp = TuiApp::new(vec![], None, InputMode::Normal);
-    // let mut app: TuiApp = TuiApp {
-    //     notes: vec![], // Load notes from the database
-    //     selected_note: None,
-    //     input_mode: InputMode::Normal,
-    // };
+    let mut app: TuiApp = TuiApp::default();
 
     loop {
         terminal.draw(|f: &mut ratatui::Frame<'_>| draw_ui(f, &app))?;
@@ -46,3 +41,5 @@ fn main() -> Result<(), io::Error> {
 
     Ok(())
 }
+
+fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<bool> {}

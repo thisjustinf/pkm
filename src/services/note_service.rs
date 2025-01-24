@@ -1,8 +1,6 @@
-use super::Service;
-use nject::{inject, injectable};
+use crate::note_repository::NoteRepository;
 
-#[injectable]
-#[inject(Self::new(repo))]
+#[derive(Debug)]
 pub struct NoteService {
     repo: NoteRepository,
 }
@@ -13,4 +11,9 @@ impl NoteService {
     }
 }
 
-impl Service<Note> for NoteService {}
+impl Default for NoteService {
+    fn default() -> Self {
+        let repo: NoteRepository = NoteRepository::default();
+        NoteService::new(repo)
+    }
+}
