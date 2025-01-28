@@ -8,6 +8,5 @@ diesel::table! {
         tags -> Text,
         created_at -> Timestamp,
         updated_at -> Timestamp,
-        encrypted -> Bool,
     }
 }

@@ -20,7 +20,6 @@ pub struct Note {
     pub tags: JsonTags, // JSON encoded string
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
-    pub encrypted: bool,
 }
 
 impl Note {
@@ -31,7 +30,6 @@ impl Note {
         tags: JsonTags,
         created_at: NaiveDateTime,
         updated_at: NaiveDateTime,
-        encrypted: bool,
     ) -> Self {
         Self {
             id,
@@ -40,7 +38,6 @@ impl Note {
             tags,
             created_at,
             updated_at,
-            encrypted,
         }
     }
 }
@@ -52,16 +49,14 @@ pub struct BaseNoteDTO<'a> {
     pub title: &'a str,
     pub content: &'a str,
     pub tags: &'a str, // JSON encoded string
-    pub encrypted: bool,
 }
 
 impl<'a> BaseNoteDTO<'a> {
-    pub fn new(title: &'a str, content: &'a str, tags: &'a str, encrypted: bool) -> Self {
+    pub fn new(title: &'a str, content: &'a str, tags: &'a str) -> Self {
         Self {
             title,
             content,
             tags,
-            encrypted,
         }
     }
 }
