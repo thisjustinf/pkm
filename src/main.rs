@@ -3,7 +3,7 @@ use crossterm::{
     execute,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
-use pkm::tui::{layout::draw_ui, InputMode, TuiApp};
+use pkm::tui::{App, InputMode};
 use ratatui::{backend::CrosstermBackend, Terminal};
 use std::io;
 
@@ -15,7 +15,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let backend: CrosstermBackend<io::Stderr> = CrosstermBackend::new(stderr);
     let mut terminal: Terminal<CrosstermBackend<io::Stderr>> = Terminal::new(backend)?;
 
-    let mut app: TuiApp = TuiApp::default();
+    let mut app: App = App::default();
 
     loop {
         terminal.draw(|f: &mut ratatui::Frame<'_>| draw_ui(f, &app))?;

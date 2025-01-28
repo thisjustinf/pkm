@@ -1,5 +1,5 @@
 use crate::database::{schema::notes::dsl::*, DatabasePool};
-use crate::models::note::*;
+use crate::models::note::{BaseNoteDTO, Note};
 use diesel::{
     prelude::*,
     r2d2::{ConnectionManager, PooledConnection},
@@ -26,7 +26,7 @@ impl Default for NoteRepository {
     }
 }
 
-impl Repository<Note, i32> for NoteRepository {
+impl Repository<Note, i32, BaseNoteDTO<'_>> for NoteRepository {
     fn get_all(&self, limit: i64) -> Result<Vec<Note>, RepositoryError> {
         let mut conn: PooledConnection<ConnectionManager<SqliteConnection>> = self
             .db
@@ -36,11 +36,11 @@ impl Repository<Note, i32> for NoteRepository {
             .limit(limit)
             .select(Note::as_select())
             .load(&mut conn)
-            .map_err(|e| RepositoryError::ResourceNotFound)
+            .map_err(|_| RepositoryError::ResourceNotFound)
     }
 
     fn get_by_id(&self, note_id: i32) -> Result<Note, RepositoryError> {
-        let conn: PooledConnection<ConnectionManager<SqliteConnection>> = self
+        let mut conn: PooledConnection<ConnectionManager<SqliteConnection>> = self
             .db
             .get_connection()
             .map_err(|e| RepositoryError::DatabaseError(e))?;
@@ -48,11 +48,11 @@ impl Repository<Note, i32> for NoteRepository {
             .find(note_id)
             .select(Note::as_select())
             .first(&mut conn)
-            .map_err(|e| RepositoryError::ResourceNotFound)
+            .map_err(|_| RepositoryError::ResourceNotFound)
     }
 
-    fn create<CreateNoteDTO>(&self, insertable: &CreateNoteDTO) -> Result<Note, RepositoryError> {
-        let conn: PooledConnection<ConnectionManager<SqliteConnection>> = self
+    fn create(&self, insertable: &BaseNoteDTO) -> Result<Note, RepositoryError> {
+        let mut conn: PooledConnection<ConnectionManager<SqliteConnection>> = self
             .db
             .get_connection()
             .map_err(|e| RepositoryError::DatabaseError(e))?;
@@ -60,20 +60,16 @@ impl Repository<Note, i32> for NoteRepository {
             .values(insertable)
             .returning(Note::as_returning())
             .get_result(&mut conn)
-            .map_err(|e| RepositoryError::InsertError)
+            .map_err(|_| RepositoryError::InsertError)
     }
 
-    fn update<BaseNoteDTO>(
-        &self,
-        note_id: i32,
-        dto: &BaseNoteDTO,
-    ) -> Result<Note, RepositoryError> {
-        let conn: PooledConnection<ConnectionManager<SqliteConnection>> = self
+    fn update(&self, note_id: i32, dto: &BaseNoteDTO) -> Result<Note, RepositoryError> {
+        let mut conn: PooledConnection<ConnectionManager<SqliteConnection>> = self
             .db
             .get_connection()
             .map_err(|e| RepositoryError::DatabaseError(e))?;
         if let Ok(_) = self.get_by_id(note_id) {
-            let updated_note = diesel::update(notes.find(note_id))
+            let updated_note: Note = diesel::update(notes.find(note_id))
                 .set((
                     title.eq(dto.title),
                     content.eq(dto.content),
@@ -81,7 +77,7 @@ impl Repository<Note, i32> for NoteRepository {
                 ))
                 .returning(Note::as_returning())
                 .get_result(&mut conn)
-                .map_err(|e| RepositoryError::DatabaseError(e))?;
+                .map_err(|e| RepositoryError::DieselError(e))?;
             Ok(updated_note)
         } else {
             Err(RepositoryError::ResourceNotFound)

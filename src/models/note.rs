@@ -3,10 +3,10 @@ use chrono::NaiveDateTime;
 use diesel::{
     deserialize::{self, FromSql, FromSqlRow},
     expression::AsExpression,
+    prelude::*,
     serialize::{self, IsNull, Output, ToSql},
     sql_types::{self, Text},
     sqlite::{Sqlite, SqliteValue},
-    Insertable, Queryable, Selectable,
 };
 use serde::{Deserialize, Serialize};
 
@@ -52,29 +52,10 @@ pub struct BaseNoteDTO<'a> {
     pub title: &'a str,
     pub content: &'a str,
     pub tags: &'a str, // JSON encoded string
-}
-
-impl<'a> BaseNoteDTO<'a> {
-    pub fn new(title: &'a str, content: &'a str, tags: &'a str) -> Self {
-        Self {
-            title,
-            content,
-            tags,
-        }
-    }
-}
-
-#[derive(Insertable)]
-#[diesel(table_name = notes)]
-#[diesel(check_for_backend(Sqlite))]
-pub struct CreateNoteDTO<'a> {
-    pub title: &'a str,
-    pub content: &'a str,
-    pub tags: &'a str, // JSON encoded string
     pub encrypted: bool,
 }
 
-impl<'a> CreateNoteDTO<'a> {
+impl<'a> BaseNoteDTO<'a> {
     pub fn new(title: &'a str, content: &'a str, tags: &'a str, encrypted: bool) -> Self {
         Self {
             title,

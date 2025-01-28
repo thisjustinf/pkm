@@ -7,7 +7,7 @@ use crate::{models::note::Note, AppService};
 use super::InputMode;
 
 #[derive(Debug, Default)]
-pub struct TuiApp {
+pub struct App {
     pub notes: Vec<Note>,
     pub selected_note: Option<Note>,
     pub input_mode: InputMode,
@@ -15,20 +15,14 @@ pub struct TuiApp {
     pub exit: bool,
 }
 
-impl TuiApp {
-    pub fn new(
-        notes: Vec<Note>,
-        selected_note: Option<Note>,
-        input_mode: InputMode,
-        app_service: AppService,
-        exit: bool,
-    ) -> Self {
+impl App {
+    pub fn new() -> Self {
         Self {
-            notes,
-            selected_note,
-            input_mode,
-            app_service,
-            exit,
+            notes: vec![],
+            selected_note: None,
+            input_mode: InputMode::Normal,
+            app_service: AppService::default(),
+            exit: false,
         }
     }
 
