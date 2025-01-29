@@ -39,6 +39,6 @@ impl App {
     }
 
     fn handle_events(&mut self) -> io::Result<()> {
-        todo!()
+        Ok(())
     }
 }
