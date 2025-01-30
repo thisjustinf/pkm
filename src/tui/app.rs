@@ -1,14 +1,11 @@
-use std::io;
-
-use ratatui::{DefaultTerminal, Frame};
-
 use crate::{models::note::Note, AppService};
 
-use super::InputMode;
+use super::{AppScreen, InputMode};
 
 #[derive(Debug, Default)]
 pub struct App {
     pub notes: Vec<Note>,
+    pub current_screen: AppScreen,
     pub selected_note: Option<Note>,
     pub input_mode: InputMode,
     pub app_service: AppService,
@@ -19,6 +16,7 @@ impl App {
     pub fn new() -> Self {
         Self {
             notes: vec![],
+            current_screen: AppScreen::Main,
             selected_note: None,
             input_mode: InputMode::Normal,
             app_service: AppService::default(),
@@ -26,19 +24,7 @@ impl App {
         }
     }
 
-    pub fn run(&mut self, terminal: &mut DefaultTerminal) -> io::Result<()> {
-        while !self.exit {
-            terminal.draw(|frame: &mut Frame<'_>| self.draw(frame))?;
-            self.handle_events()?;
-        }
-        Ok(())
-    }
-
-    fn draw(&self, frame: &mut Frame) {
-        frame.render_widget(self, frame.area());
-    }
-
-    fn handle_events(&mut self) -> io::Result<()> {
-        Ok(())
+    pub fn exit(&mut self) {
+        self.exit = true
     }
 }

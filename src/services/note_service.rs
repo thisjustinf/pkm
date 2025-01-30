@@ -16,25 +16,25 @@ impl NoteService {
         Self { repo }
     }
 
-    fn get_notes(&self) -> Vec<Note> {
+    pub fn get_notes(&self) -> Vec<Note> {
         self.repo.get_all(10).unwrap_or_default()
     }
 
-    fn create_note(&self, note_dto: BaseNoteDTO) -> Result<Note, ServiceError> {
+    pub fn create_note(&self, note_dto: BaseNoteDTO) -> Result<Note, ServiceError> {
         match self.repo.create(&note_dto) {
             Ok(n) => Ok(n),
             Err(_) => Err(ServiceError::UnexpectedError),
         }
     }
 
-    fn update_note(&self, id: i32, note_dto: BaseNoteDTO) -> Result<Note, ServiceError> {
+    pub fn update_note(&self, id: i32, note_dto: BaseNoteDTO) -> Result<Note, ServiceError> {
         match self.repo.update(id, &note_dto) {
             Ok(n) => Ok(n),
             Err(_) => Err(ServiceError::UnexpectedError),
         }
     }
 
-    fn delete_note(&self, id: i32) -> Result<bool, ServiceError> {
+    pub fn delete_note(&self, id: i32) -> Result<bool, ServiceError> {
         match self.repo.delete(id) {
             Ok(n) => Ok(n),
             Err(_) => Err(ServiceError::UnexpectedError),
